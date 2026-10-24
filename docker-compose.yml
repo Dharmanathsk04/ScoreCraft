@@ -1,0 +1,49 @@
+version: '3.4'
+name: quizzer
+services:
+  quizzer.api:
+    container_name: quizzer-api
+    image: quizzer-api
+    build:
+      context: .
+      dockerfile: src/API/Quizzer.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__IdentityModuleDbContext: "Server=quizzer-db;database=Quizzer;User Id=sa;Password=Pass@word;Encrypt=false"
+      ConnectionStrings__QuestionModuleDbContext: "Server=quizzer-db;database=Quizzer;User Id=sa;Password=Pass@word;Encrypt=false"
+      ConnectionStrings__ExamModuleDbContext: "Server=quizzer-db;database=Quizzer;User Id=sa;Password=Pass@word;Encrypt=false"
+      ConnectionStrings__Redis: "quizzer-redis:6379"
+      JwtConfiguration__JwtKey: "d730897473419d1e76189efe498ecd397e812be39fde2a68f9c6a245cf9f9ab5"
+      DefaultUser__password: "${DEFAULT_USER_PASSWORD:-ChangeMe@123}"
+    ports:
+       - "8080:8080"
+       - "8081:8081"
+    depends_on:
+       - quizzer.db
+       - quizzer.redis
+
+  quizzer.db:
+    container_name: quizzer-db
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Pass@word
+    volumes:
+      - sqlvolume:/var/opt/mssql
+    ports:
+    - 1435:1433
+
+  quizzer.redis:
+    container_name: quizzer-redis
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisvolume:/data
+
+volumes:
+   sqlvolume:
+   redisvolume:
+
+
+
